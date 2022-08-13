@@ -11,20 +11,19 @@ qm set 4001 --ide2 local-lvm:cloudinit
 qm set 4001 --boot c --bootdisk virtio0
 qm set 4001 --vga std
 qm template 4001
+sleep 30
 
 #Define VM variables
-$vmid=`pvesh get /cluster/nextid`
-$hostname=ia
-$cores=1
-$memory=1024
-$username=ubuntu
-$password=draPH4
-$domain=ix0.io
-$disksize=20G
-$ip=10.0.10.50/24
-$gw=10.0.10.1
-$dns=10.0.10.10
-$sshkey=runbgp.keys
+vmid=$(pvesh get /cluster/nextid)
+hostname=iatest02
+cores=1
+memory=1024
+username=ubuntu
+password=draPH4
+domain=ix0.io
+disksize=20G
+dns=10.0.10.10
+sshkey=runbgp.keys
 
 #Clone template and create a VM
 qm clone 4001 $vmid --name $hostname
@@ -34,11 +33,12 @@ qm set $vmid --memory $memory
 qm set $vmid --ciuser $username
 qm set $vmid --cipassword $password
 qm set $vmid --searchdomain $domain
-qm set $vmid --ipconfig0 $ip,$gw
+qm set $vmid --ipconfig0 10.0.10.50/24,10.0.10.1
 qm set $vmid --nameserver $dns
 qm set $vmid --sshkey $sshkey
 qm resize $vmid virtio0 $disksize
 qm start $vmid
+sleep 5
 
 #Cleanup
 rm jammy-server-cloudimg-amd64.img
