@@ -111,7 +111,7 @@ echo "##################"
 echo "# Cleaning up... #"
 echo "##################"
 sleep 2
-rm *cloudimg-amd64.img
+rm $image
 rm $githubusername.keys
 qm destroy 4001
 sleep 2
