@@ -104,8 +104,6 @@ qm set $vmid --nameserver $dns
 qm set $vmid --sshkey $githubusername.keys
 qm resize $vmid virtio0 $disk
 sleep 5
-qm start $vmid
-sleep 5
 
 #Cleanup
 echo "##################"
