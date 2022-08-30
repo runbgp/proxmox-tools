@@ -62,7 +62,7 @@ read -p 'Hostname: ' hostname
 read -p 'CPU Cores: ' cores
 read -p 'RAM (MB): ' memory
 read -p 'Datastore (e.g. local-lvm): ' datastore
-read -p 'Disk (GB): ' disk
+read -p 'Disk (e.g. 20G): ' disk
 read -p 'cloud-init Username: ' username
 read -sp 'Password: ' password
 echo
@@ -102,7 +102,7 @@ qm set $vmid --searchdomain $domain
 qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
 qm set $vmid --nameserver $dns
 qm set $vmid --sshkey $githubusername.keys
-qm resize $vmid virtio0 [$disk]G
+qm resize $vmid virtio0 $disk
 sleep 5
 qm start $vmid
 sleep 5
