@@ -13,19 +13,19 @@ if [ $os -eq 1 ]; then
     echo "###############################"
     echo "# Downloading Ubuntu 22.04... #"
     echo "###############################"
-    wget https://box.ix0.io/ubuntu/jammy-server-cloudimg-amd64.img
+    wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 elif [ $os -eq 2 ]; then
     image=focal-server-cloudimg-amd64.img
     echo "###############################"
     echo "# Downloading Ubuntu 20.04... #"
     echo "###############################"
-    wget https://box.ix0.io/ubuntu/focal-server-cloudimg-amd64.img
+    wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 elif [ $os -eq 3 ]; then
     image=bionic-server-cloudimg-amd64.img
     echo "###############################"
     echo "# Downloading Ubuntu 18.04... #"
     echo "###############################"
-    wget https://box.ix0.io/ubuntu/bionic-server-cloudimg-amd64.img
+    wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
 fi
 echo $image has been downloaded.
 sleep 5
