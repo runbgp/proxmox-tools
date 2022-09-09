@@ -54,7 +54,7 @@ echo "################################################"
 fi
 
 #Define VM configuration variables
-echo "#####################"
+echo "####################"
 echo "# VM Configuration #"
 echo "####################"
 sleep 2
