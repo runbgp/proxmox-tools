@@ -3,28 +3,28 @@ echo "Welcome to runbgp's Proxmox Tools VM creation script!"
 sleep 2
 echo "#######################################################################"
 echo "# Please specify the operating system of the VM you'd like to create. #"
-echo "#       1. Ubuntu 22.04 | 2. Ubuntu 20.04 | 3. Ubuntu 18.04           #"
+echo "# 1. Ubuntu 22.04 LTS | 2. Ubuntu 20.04 LTS | 3. Ubuntu 18.04 LTS     #"
 echo "#######################################################################"
 read -p 'OS: ' os
 
 #Download Ubuntu cloud image
 if [ $os -eq 1 ]; then
     image=jammy-server-cloudimg-amd64.img
-    echo "###############################"
-    echo "# Downloading Ubuntu 22.04... #"
-    echo "###############################"
+    echo "###################################"
+    echo "# Downloading Ubuntu 22.04 LTS... #"
+    echo "###################################"
     wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
 elif [ $os -eq 2 ]; then
     image=focal-server-cloudimg-amd64.img
-    echo "###############################"
-    echo "# Downloading Ubuntu 20.04... #"
-    echo "###############################"
+    echo "###################################"
+    echo "# Downloading Ubuntu 20.04 LTS... #"
+    echo "###################################"
     wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
 elif [ $os -eq 3 ]; then
     image=bionic-server-cloudimg-amd64.img
-    echo "###############################"
-    echo "# Downloading Ubuntu 18.04... #"
-    echo "###############################"
+    echo "###################################"
+    echo "# Downloading Ubuntu 18.04 LTS... #"
+    echo "###################################"
     wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
 fi
 echo $image has been downloaded.
