@@ -1,62 +1,102 @@
 #!/bin/bash
-echo "Welcome to runbgp's Proxmox Tools VM creation script!"
-sleep 2
-echo "#######################################################################"
-echo "# Please specify the operating system of the VM you'd like to create. #"
-echo "# 1. Ubuntu 22.04 LTS | 2. Ubuntu 20.04 LTS | 3. Ubuntu 18.04 LTS     #"
-echo "#######################################################################"
-read -p 'OS: ' os
 
-#Download Ubuntu cloud image
-if [ $os -eq 1 ]; then
-    image=jammy-server-cloudimg-amd64.img
-    echo "###################################"
-    echo "# Downloading Ubuntu 22.04 LTS... #"
-    echo "###################################"
-    wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
-elif [ $os -eq 2 ]; then
-    image=focal-server-cloudimg-amd64.img
-    echo "###################################"
-    echo "# Downloading Ubuntu 20.04 LTS... #"
-    echo "###################################"
-    wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-elif [ $os -eq 3 ]; then
-    image=bionic-server-cloudimg-amd64.img
-    echo "###################################"
-    echo "# Downloading Ubuntu 18.04 LTS... #"
-    echo "###################################"
-    wget https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-fi
-echo $image has been downloaded.
+# Function to print a message inside a box
+print_in_box() {
+    local input="$1"
+    local longest=0
+    while IFS= read -r line; do
+        (( ${#line} > longest )) && longest=${#line}
+    done <<< "$input"
+
+    printf '┌'
+    for ((i=0; i<$longest; i++)); do printf '─'; done
+    printf '┐\n'
+
+    while IFS= read -r line; do
+        printf "│%-*s│\n" "$longest" "$line"
+    done <<< "$input"
+
+    printf '└'
+    for ((i=0; i<$longest; i++)); do printf '─'; done
+    printf '┘\n'
+}
+
+clear
+print_in_box "Welcome to runbgp's Proxmox Tools VM creation script!"
+sleep 2
+
+# Select OS
+clear
+print_in_box "Select the operating system of the VM you'd like to create.
+1. Ubuntu 22.04 LTS 
+2. Ubuntu 20.04 LTS 
+3. Ubuntu 18.04 LTS"
+
+while true; do
+    read -p 'OS: ' os
+    case $os in
+        [1-3]) break;;
+        *) print_in_box "Invalid selection. Please enter 1, 2, or 3.";;
+    esac
+done
+
+# Define arrays for image names and URLs
+images=("jammy-server-cloudimg-amd64.img" "focal-server-cloudimg-amd64.img" "bionic-server-cloudimg-amd64.img")
+urls=("https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img")
+versions=("22.04" "20.04" "18.04")
+
+# Subtract 1 because array indices start at 0
+index=$((os - 1))
+
+# Assign the selected image and download URL
+image=${images[$index]}
+url=${urls[$index]}
+version=${versions[$index]}
+
+# Download the selected image
+clear
+print_in_box "Downloading Ubuntu Server $version LTS..."
+wget $url
+
+clear
+print_in_box "$image has been downloaded."
 sleep 5
 
-#Download SSH key
-echo "###################################################"
-echo "# Would you like to add an SSH key to cloud-init? #"
-echo "###################################################"
+# Download SSH key
+clear
+print_in_box "Would you like to add an SSH key to cloud-init?"
 read -p '(y)es/(n)o: ' sshchoice
 
-if sshchoice=y; then
-echo "#########################################################################"
-echo "# Please enter the GitHub username to download your public key(s) from. #"
-echo "#########################################################################"
-read -p 'GitHub Username: ' githubusername
-wget https://github.com/$githubusername.keys
-echo "##################################################################################"
-echo "# The following SSH keys have been downloaded and will be applied to cloud-init. #"
-echo "##################################################################################"
-cat $githubusername.keys
-sleep 5
-elif sshchoice=n; then
-echo "################################################"
-echo "#You chose to not add an SSH key. Proceeding...#"
-echo "################################################"
+set_sshkey=false
+if [ "$sshchoice" = "y" ]; then
+    set_sshkey=true
+    print_in_box "Would you like to download SSH keys from GitHub or paste a key?"
+    read -p '(g)ithub/(p)aste: ' keychoice
+    if [ "$keychoice" = "g" ]; then
+        print_in_box "Enter the GitHub username to download your public key(s) from."
+        read -p 'GitHub Username: ' githubusername
+        wget https://github.com/$githubusername.keys
+        keyfile="$githubusername.keys"
+    elif [ "$keychoice" = "p" ]; then
+        print_in_box "Paste your SSH public key(s) to be applied to cloud-init."
+        read -p 'SSH Key: ' sshkey
+        echo "$sshkey" > pasted.keys
+        keyfile="pasted.keys"
+    fi
+
+    clear
+    print_in_box "The following SSH keys have been downloaded and will be applied to cloud-init."
+    cat $keyfile
+    sleep 5
+elif [ "$sshchoice" = "n" ]; then
+    clear
+    print_in_box "You chose to not add an SSH key! Proceeding..."
+    sleep 2
 fi
 
-#Define VM configuration variables
-echo "####################"
-echo "# VM Configuration #"
-echo "####################"
+# Define VM configuration variables
+clear
+print_in_box "VM Configuration"
 sleep 2
 read -p 'Hostname: ' hostname
 read -p 'CPU Cores: ' cores
@@ -68,15 +108,13 @@ read -sp 'Password: ' password
 echo
 read -p 'DNS Domain: ' domain
 read -p 'Network Bridge (e.g. vmbr0): ' bridge
-read -p 'IPv4 Address/CIDR (e.g. 10.0.0.20/24): ' ipaddress
-read -p 'IPv4 Gateway Address (e.g. 10.0.0.1): ' gwaddress
-read -p 'DNS Server Address: ' dns
-sleep 2
+read -p 'IPv4 Address/CIDR (e.g. 192.168.1.50/24): ' ipaddress
+read -p 'IPv4 Gateway Address (e.g. 192.168.1.1): ' gwaddress
+read -p 'DNS Server Address: (e.g. 1.1.1.1) ' dns
 
-#Create VM template (VMID 4001)
-echo "#########################################"
-echo "# Creating a VM template (VMID 4001)... #"
-echo "#########################################"
+# Create VM template (VMID 4001)
+clear
+print_in_box "Creating a VM template (VMID 4001)..."
 qm create 4001 --memory 1024 --net0 virtio,bridge=$bridge
 qm importdisk 4001 $image $datastore
 qm set 4001 --scsihw virtio-scsi-pci --virtio0 $datastore:vm-4001-disk-0
@@ -86,11 +124,9 @@ qm set 4001 --vga std
 qm template 4001
 sleep 30
 
-#Clone template and create a VM
-echo "##################"
-echo "# Creating VM... #"
-echo "##################"
-sleep 2
+# Clone template and create a VM
+clear
+print_in_box "Creating VM..."
 vmid=$(pvesh get /cluster/nextid)
 qm clone 4001 $vmid --name $hostname --full
 qm set $vmid --cpu host
@@ -101,20 +137,23 @@ qm set $vmid --cipassword $password
 qm set $vmid --searchdomain $domain
 qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
 qm set $vmid --nameserver $dns
-qm set $vmid --sshkey $githubusername.keys
+if $set_sshkey; then
+    qm set $vmid --sshkey $keyfile
+fi
 qm resize $vmid virtio0 $disk
 sleep 5
 
-#Cleanup
-echo "##################"
-echo "# Cleaning up... #"
-echo "##################"
-sleep 2
+# Cleanup
+clear
+print_in_box "Cleaning up..."
 rm $image
 rm $githubusername.keys
 qm destroy 4001
 sleep 2
 
-echo "#########"
-echo "# Done! #"
-echo "#########"
+clear
+print_in_box "VM created successfully.
+VMID: $vmid
+Hostname: $hostname
+IP Address: $ipaddress
+Username: $username"
