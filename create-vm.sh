@@ -147,10 +147,11 @@ sleep 5
 clear
 print_in_box "Cleaning up..."
 rm $image
-rm $githubusername.keys
+rm *.keys
 qm destroy 4001
 sleep 2
 
+# Print details about the created VM
 clear
 print_in_box "VM created successfully.
 VMID: $vmid
