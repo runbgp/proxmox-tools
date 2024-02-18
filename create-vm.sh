@@ -53,19 +53,25 @@ image=${images[$index]}
 url=${urls[$index]}
 version=${versions[$index]}
 
-# Download the selected image
-clear
-print_in_box "Downloading Ubuntu Server $version LTS..."
-wget $url
+# Check if the selected image already exists
+if [ -f "$image" ]; then
+    clear
+    print_in_box "$image already exists. Skipping download."
+else
+    # Download the selected image
+    clear
+    print_in_box "Downloading Ubuntu Server $version LTS..."
+    wget $url
 
-clear
-print_in_box "$image has been downloaded."
+    clear
+    print_in_box "$image has been downloaded."
+fi
 sleep 5
 
 # Download SSH key
 clear
 print_in_box "Would you like to add an SSH key to cloud-init?"
-read -p '(y)es/(n)o: ' sshchoice
+read -p '(y)/(n): ' sshchoice
 
 set_sshkey=false
 if [ "$sshchoice" = "y" ]; then
@@ -106,11 +112,16 @@ read -p 'Disk (e.g. 20G): ' disk
 read -p 'cloud-init Username: ' username
 read -sp 'Password: ' password
 echo
-read -p 'DNS Domain: ' domain
 read -p 'Network Bridge (e.g. vmbr0): ' bridge
 read -p 'IPv4 Address/CIDR (e.g. 192.168.1.50/24): ' ipaddress
 read -p 'IPv4 Gateway Address (e.g. 192.168.1.1): ' gwaddress
+read -p 'Would you like to add an IPv6 address and gateway? (y/n): ' ipv6choice
+if [ "$ipv6choice" = "y" ]; then
+    read -p 'IPv6 Address/CIDR (e.g. 2001:db8::1/64): ' ipv6address
+    read -p 'IPv6 Gateway Address (e.g. 2001:db8::1): ' ipv6gwaddress
+fi
 read -p 'DNS Server Address: (e.g. 1.1.1.1) ' dns
+read -p 'DNS Domain: ' domain
 
 # Create VM template (VMID 4001)
 clear
@@ -121,6 +132,7 @@ qm set 4001 --scsihw virtio-scsi-pci --virtio0 $datastore:vm-4001-disk-0
 qm set 4001 --ide2 $datastore:cloudinit
 qm set 4001 --boot c --bootdisk virtio0
 qm set 4001 --vga std
+qm set 4001 --ostype l26
 qm template 4001
 sleep 30
 
@@ -134,9 +146,14 @@ qm set $vmid --cores $cores
 qm set $vmid --memory $memory
 qm set $vmid --ciuser $username
 qm set $vmid --cipassword $password
-qm set $vmid --searchdomain $domain
-qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
+if ["ipv6choice" = "n" ]; then
+    qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
+fi
+if [ "$ipv6choice" = "y" ]; then
+    qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress,ip6=$ipv6address,gw6=$ipv6gwaddress
+fi
 qm set $vmid --nameserver $dns
+qm set $vmid --searchdomain $domain
 if $set_sshkey; then
     qm set $vmid --sshkey $keyfile
 fi
@@ -146,7 +163,6 @@ sleep 5
 # Cleanup
 clear
 print_in_box "Cleaning up..."
-rm $image
 rm *.keys
 qm destroy 4001
 sleep 2
@@ -157,4 +173,5 @@ print_in_box "VM created successfully.
 VMID: $vmid
 Hostname: $hostname
 IP Address: $ipaddress
+IPv6 Address: $ipv6address
 Username: $username"

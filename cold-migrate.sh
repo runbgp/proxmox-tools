@@ -1,36 +1,51 @@
 #!/bin/bash
-echo "###################################"
-echo "Welcome to the qm migrate script"
-echo -e "################################### \n"
-echo "Please start by entering the numerical ID of"
-echo -e "the VM you would like to migrate: \n"
+
+# Function to print a message inside a box
+print_in_box() {
+    local input="$1"
+    local longest=0
+    while IFS= read -r line; do
+        (( ${#line} > longest )) && longest=${#line}
+    done <<< "$input"
+
+    printf '┌'
+    for ((i=0; i<$longest; i++)); do printf '─'; done
+    printf '┐\n'
+
+    while IFS= read -r line; do
+        printf "│%-*s│\n" "$longest" "$line"
+    done <<< "$input"
+
+    printf '└'
+    for ((i=0; i<$longest; i++)); do printf '─'; done
+    printf '┘\n'
+}
+
+clear
+print_in_box "Welcome to runbgp & tcude's Proxmox Tools VM creation script!"
+sleep 2
+
+print_in_box "Input the ID of the VM you would like to migrate:"
 read vm_id
-echo -e "       \n"
-echo -e "VM $vm_id will be migrated \n"
-echo "Next, please enter the name of the"
-echo "target host that you would like to"
-echo -e "migrate the VM to. Your choices are: \n"
+
+print_in_box "VM $vm_id will be migrated\nEnter the name of the target host that you would like to migrate the VM to. Available hosts:"
 ls /etc/pve/nodes
-echo -e "       \n"
 read target_hostname
-echo -e "       \n"
-echo -e "VM $vm_id will be migrated to $target_hostname \n"
-echo "Lastly, please supply the name of the"
-echo -e "datastore you would like to migrate to \n"
+
+print_in_box "VM $vm_id will be migrated to $target_hostname\nInput the name of the datastore you would like to migrate to:"
 pvesm status
-echo -e "       \n"
 read target_datastore
-echo -e "       \n"
-echo "To confirm, you will be migrating VM $vm_id to $target_hostname on datastore $target_datastore"
-read -r -p "Are you sure? [y/N] " response
+
+print_in_box "VM $vm_id will be migrated to $target_hostname on datastore $target_datastore\nProceed? [y/n]"
+read -r -p "" response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
-    echo "Proceeding with the migration of $vm_id to $hostname on datastore $target_datastore"
+    print_in_box "Proceeding with the migration of $vm_id to $target_hostname on datastore $target_datastore"
     qm migrate $vm_id $target_hostname --targetstorage $target_datastore &
     process_id=$!
     wait $process_id
-    echo "Completed with status $?"
+    print_in_box "Completed with status $?"
 else
-    echo "Cancelling"
+    print_in_box "Cancelling."
     exit 1
 fi
