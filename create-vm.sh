@@ -128,7 +128,7 @@ clear
 print_in_box "Creating a VM template (VMID 4001)..."
 qm create 4001 --memory 1024 --net0 virtio,bridge=$bridge
 qm importdisk 4001 $image $datastore
-qm set 4001 --scsihw virtio-scsi-pci --virtio0 $datastore:vm-4001-disk-0
+qm set 4001 --scsihw virtio-scsi-single --virtio0 $datastore:vm-4001-disk-0,iothread=1
 qm set 4001 --ide2 $datastore:cloudinit
 qm set 4001 --boot c --bootdisk virtio0
 qm set 4001 --vga std
@@ -146,7 +146,7 @@ qm set $vmid --cores $cores
 qm set $vmid --memory $memory
 qm set $vmid --ciuser $username
 qm set $vmid --cipassword $password
-if ["ipv6choice" = "n" ]; then
+if [ "ipv6choice" = "n" ]; then
     qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
 fi
 if [ "$ipv6choice" = "y" ]; then
