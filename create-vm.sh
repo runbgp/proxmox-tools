@@ -28,22 +28,23 @@ sleep 2
 # Select OS
 clear
 print_in_box "Select the operating system of the VM you'd like to create.
-1. Ubuntu 22.04 LTS 
-2. Ubuntu 20.04 LTS 
-3. Ubuntu 18.04 LTS"
+1. Ubuntu 24.04 LTS 
+2. Ubuntu 22.04 LTS 
+3. Ubuntu 20.04 LTS 
+4. Ubuntu 18.04 LTS"
 
 while true; do
     read -p 'OS: ' os
     case $os in
         [1-3]) break;;
-        *) print_in_box "Invalid selection. Please enter 1, 2, or 3.";;
+        *) print_in_box "Invalid selection. Please enter 1, 2, 3 or 4.";;
     esac
 done
 
 # Define arrays for image names and URLs
-images=("jammy-server-cloudimg-amd64.img" "focal-server-cloudimg-amd64.img" "bionic-server-cloudimg-amd64.img")
-urls=("https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img")
-versions=("22.04" "20.04" "18.04")
+images=("noble-server-cloudimg-amd64.img" "jammy-server-cloudimg-amd64.img" "focal-server-cloudimg-amd64.img" "bionic-server-cloudimg-amd64.img")
+urls=("https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img" "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img")
+versions=("24.04" "22.04" "20.04" "18.04")
 
 # Subtract 1 because array indices start at 0
 index=$((os - 1))
@@ -146,7 +147,7 @@ qm set $vmid --cores $cores
 qm set $vmid --memory $memory
 qm set $vmid --ciuser $username
 qm set $vmid --cipassword $password
-if [ "ipv6choice" = "n" ]; then
+if [ "$ipv6choice" = "n" ]; then
     qm set $vmid --ipconfig0 ip=$ipaddress,gw=$gwaddress
 fi
 if [ "$ipv6choice" = "y" ]; then
